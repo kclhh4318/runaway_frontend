@@ -1,16 +1,35 @@
-# runaway
+# Runaway
 
-A new Flutter project.
+Runaway is a Flutter application for tracking and analyzing runs. It allows users to record their running sessions, view statistics, and get course recommendations.
+
+## Features
+
+- User authentication
+- Running session tracking
+- Course drawing and recommendations
+- Statistics and performance analysis
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+1. Clone the repository
+2. Run `flutter pub get` to install dependencies
+3. Run `flutter run` to start the app
 
-A few resources to get you started if this is your first Flutter project:
+## Project Structure
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+The project follows a feature-based structure:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- `lib/`: Contains all the Dart code for the application
+    - `config/`: App configuration
+    - `core/`: Core utilities and widgets
+    - `features/`: Feature-specific code (auth, home, running, courses, stats)
+    - `models/`: Data models
+    - `services/`: Services for API, auth, location, and storage
+
+## Contributing
+
+Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE.md file for details.
