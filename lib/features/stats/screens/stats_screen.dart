@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:runaway/features/courses/screens/course_drawing_screen.dart';
 import 'package:runaway/features/running/screens/running_session_screen.dart';
+import 'package:runaway/features/stats/widgets/period_selector.dart';
+import 'package:runaway/features/stats/widgets/stats_bar_chart.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({Key? key}) : super(key: key);
@@ -13,7 +14,8 @@ class StatsScreen extends StatefulWidget {
 class _StatsScreenState extends State<StatsScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showRunningButtons = true;
-  String _selectedPeriod = '전체';
+  String _selectedPeriod = '년';
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -40,13 +42,9 @@ class _StatsScreenState extends State<StatsScreen> {
               controller: _scrollController,
               slivers: [
                 SliverToBoxAdapter(child: _buildTotalStats()),
-                SliverPersistentHeader(
-                  pinned: true,
-                  floating: true,
-                  delegate: PeriodTabsHeader(
-                    minExtent: 60,
-                    maxExtent: 60,
-                    selectedPeriod: _selectedPeriod,
+                SliverToBoxAdapter(
+                  child: PeriodSelector(
+                    initialPeriod: _selectedPeriod,
                     onPeriodSelected: (period) {
                       setState(() {
                         _selectedPeriod = period;
@@ -54,14 +52,16 @@ class _StatsScreenState extends State<StatsScreen> {
                     },
                   ),
                 ),
-                SliverToBoxAdapter(child: _buildRecentRunningStats()),
+                if (_selectedPeriod != '전체' && _selectedPeriod != '주')
+                  SliverToBoxAdapter(child: _buildDateFilter()),
                 SliverToBoxAdapter(child: _buildStatsChart()),
-                SliverToBoxAdapter(child: _buildRecentRuns()),
                 SliverToBoxAdapter(child: _buildCourseStatistics()),
+                SliverToBoxAdapter(child: _buildRecentRuns()),
+                SliverToBoxAdapter(child: _buildMyDrawnCourses()),
               ],
             ),
           ),
-          _buildRunningButtons(context),
+          _buildRunningButtons(),
         ],
       ),
     );
@@ -94,34 +94,34 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildRecentRunningStats() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildDateFilter() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
         children: [
-          Text('최근 러닝', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildStatItem('평균 페이스', '05:30'),
-              _buildStatItem('평균 거리', '05 km'),
-              _buildStatItem('총 횟수', '999'),
-            ],
+          Text(_selectedPeriod == '월간' ? '월 선택: ' : '년 선택: '),
+          TextButton(
+            onPressed: () async {
+              final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: _selectedDate,
+                firstDate: DateTime(2000),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null && picked != _selectedDate) {
+                setState(() {
+                  _selectedDate = picked;
+                });
+              }
+            },
+            child: Text(
+              _selectedPeriod == '월간'
+                  ? '${_selectedDate.year}년 ${_selectedDate.month}월'
+                  : '${_selectedDate.year}년',
+            ),
           ),
-          SizedBox(height: 20),
         ],
       ),
-    );
-  }
-
-  Widget _buildStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(label, style: TextStyle(fontSize: 14)),
-        Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-      ],
     );
   }
 
@@ -129,27 +129,39 @@ class _StatsScreenState extends State<StatsScreen> {
     return Container(
       height: 200,
       padding: EdgeInsets.all(16),
-      child: LineChart(
-        LineChartData(
-          lineBarsData: [
-            LineChartBarData(
-              spots: [
-                FlSpot(0, 3),
-                FlSpot(1, 1),
-                FlSpot(2, 4),
-                FlSpot(3, 2),
-              ],
-              isCurved: true,
-              color: Colors.blue,
-              barWidth: 3,
-              dotData: FlDotData(show: false),
-            ),
-          ],
-          titlesData: FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-          gridData: FlGridData(show: false),
-        ),
+      child: StatsBarChart(
+        selectedPeriod: _selectedPeriod,
+        selectedDate: _selectedDate,
       ),
+    );
+  }
+
+  Widget _buildCourseStatistics() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('코스 통계', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildCourseStatItem('코스 그리기로 달린 횟수', '15'),
+              _buildCourseStatItem('코스 추천으로 달린 횟수', '8'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCourseStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey)),
+      ],
     );
   }
 
@@ -210,23 +222,13 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildCourseStatistics() {
+  Widget _buildMyDrawnCourses() {
     return Container(
       padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('코스 통계', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildCourseStatItem('코스 그리기로 달린 횟수', '15'),
-              _buildCourseStatItem('코스 추천으로 달린 횟수', '8'),
-            ],
-          ),
-          SizedBox(height: 10),
-          Text('내가 그린 코스', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text('내가 그린 코스', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           SizedBox(height: 10),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -236,15 +238,6 @@ class _StatsScreenState extends State<StatsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCourseStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey)),
-      ],
     );
   }
 
@@ -261,7 +254,7 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildRunningButtons(BuildContext context) {
+  Widget _buildRunningButtons() {
     return Positioned(
       bottom: 20,
       left: 20,
@@ -298,43 +291,5 @@ class _StatsScreenState extends State<StatsScreen> {
         ),
       ),
     );
-  }
-}
-
-class PeriodTabsHeader extends SliverPersistentHeaderDelegate {
-  final double minExtent;
-  final double maxExtent;
-  final String selectedPeriod;
-  final ValueChanged<String> onPeriodSelected;
-
-  PeriodTabsHeader({
-    required this.minExtent,
-    required this.maxExtent,
-    required this.selectedPeriod,
-    required this.onPeriodSelected,
-  });
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: Colors.white.withOpacity(0.9),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: ['전체', '주간', '월간', '연간'].map((period) {
-          return ElevatedButton(
-            child: Text(period),
-            onPressed: () => onPeriodSelected(period),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: selectedPeriod == period ? Colors.blue : Colors.grey,
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return true;
   }
 }
