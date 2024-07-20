@@ -1,8 +1,5 @@
-// lib/features/onboarding/widgets/login_signup_content.dart
-
 import 'package:flutter/material.dart';
-import 'package:runaway/features/home/screens/home_screen.dart';
-
+import 'package:runaway/features/stats/screens/stats_screen.dart';
 
 class LoginSignupContent extends StatefulWidget {
   const LoginSignupContent({Key? key}) : super(key: key);
@@ -110,7 +107,7 @@ class _LoginSignupContentState extends State<LoginSignupContent> {
 
       // 메인화면으로 이동
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+        MaterialPageRoute(builder: (context) => StatsScreen()),
       );
     }
   }
