@@ -1,49 +1,31 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 
-class RunningStatsDisplay extends StatefulWidget {
+class RunningStatsDisplay extends StatelessWidget {
   final bool isRunning;
+  final int seconds;
+  final double distance;
+  final double avgPace;
+  final double currentPace;
 
-  const RunningStatsDisplay({Key? key, required this.isRunning}) : super(key: key);
-
-  @override
-  _RunningStatsDisplayState createState() => _RunningStatsDisplayState();
-}
-
-class _RunningStatsDisplayState extends State<RunningStatsDisplay> {
-  int _seconds = 0;
-  double _distance = 0.0;
-  String _avgPace = "05:00";
-  String _currentPace = "05:00";
-  late Timer _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _startTimer();
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (widget.isRunning) {
-        setState(() {
-          _seconds++;
-          // TODO: Implement actual distance calculation
-          _distance += 0.005; // Placeholder: adds 5 meters per second
-        });
-      }
-    });
-  }
+  const RunningStatsDisplay({
+    Key? key,
+    required this.isRunning,
+    required this.seconds,
+    required this.distance,
+    required this.avgPace,
+    required this.currentPace,
+  }) : super(key: key);
 
   String _formatTime(int seconds) {
     int minutes = seconds ~/ 60;
     int remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  String _formatPace(double pace) {
+    final paceInSeconds = pace.toInt();
+    final minutes = paceInSeconds ~/ 60;
+    final remainingSeconds = paceInSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
@@ -57,18 +39,18 @@ class _RunningStatsDisplayState extends State<RunningStatsDisplay> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatItem("평균 페이스", _avgPace),
-              _buildStatItem("현재 페이스", _currentPace),
+              _buildStatItem("평균 페이스", _formatPace(avgPace)),
+              _buildStatItem("현재 페이스", _formatPace(currentPace)),
             ],
           ),
           SizedBox(height: 20),
           Text(
-            _formatTime(_seconds),
+            _formatTime(seconds),
             style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           SizedBox(height: 10),
           Text(
-            "${_distance.toStringAsFixed(2)} km",
+            "${distance.toStringAsFixed(2)} km",
             style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
           ),
         ],

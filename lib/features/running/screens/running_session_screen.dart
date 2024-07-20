@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:runaway/features/running/running_provider.dart';
 import 'package:runaway/features/running/widgets/countdown_timer.dart';
 import 'package:runaway/features/running/widgets/running_stats_display.dart';
 import 'package:runaway/features/running/widgets/pause_stop_button.dart';
+import 'package:runaway/features/running/widgets/run_map.dart';
+import 'package:runaway/features/running/screens/run_result_screen.dart'; // 여기 임포트
 
 class RunningSessionScreen extends StatefulWidget {
   const RunningSessionScreen({Key? key}) : super(key: key);
@@ -11,25 +15,8 @@ class RunningSessionScreen extends StatefulWidget {
 }
 
 class _RunningSessionScreenState extends State<RunningSessionScreen> {
-  bool _isRunning = false;
   bool _showCountdown = true;
-
-  void _startRunning() {
-    setState(() {
-      _showCountdown = false;
-      _isRunning = true;
-    });
-  }
-
-  void _pauseRunning() {
-    setState(() {
-      _isRunning = false;
-    });
-  }
-
-  void _stopRunning() {
-    // TODO: Implement stop running logic and navigation to results screen
-  }
+  bool _showMap = false;
 
   @override
   Widget build(BuildContext context) {
@@ -37,18 +24,60 @@ class _RunningSessionScreenState extends State<RunningSessionScreen> {
       body: SafeArea(
         child: _showCountdown
             ? CountdownTimer(onFinished: _startRunning)
-            : Column(
-          children: [
-            RunningStatsDisplay(isRunning: _isRunning),
-            Expanded(child: Container()), // Placeholder for map or other content
-            PauseStopButton(
-              isRunning: _isRunning,
-              onPause: _pauseRunning,
-              onResume: _startRunning,
-              onStop: _stopRunning,
-            ),
-          ],
+            : Consumer<RunningProvider>(
+          builder: (context, runningProvider, child) {
+            return GestureDetector(
+              onHorizontalDragEnd: (details) {
+                if (details.primaryVelocity! < 0) {
+                  setState(() {
+                    _showMap = false;
+                  });
+                } else if (details.primaryVelocity! > 0) {
+                  setState(() {
+                    _showMap = true;
+                  });
+                }
+              },
+              child: _showMap
+                  ? RunMap(routePoints: runningProvider.routePoints)
+                  : Column(
+                children: [
+                  RunningStatsDisplay(
+                    isRunning: runningProvider.isRunning,
+                    seconds: runningProvider.seconds,
+                    distance: runningProvider.distance,
+                    avgPace: runningProvider.avgPace,
+                    currentPace: runningProvider.currentPace,
+                  ),
+                  Expanded(child: Container()),
+                  PauseStopButton(
+                    isRunning: runningProvider.isRunning,
+                    onPause: runningProvider.pauseRunning,
+                    onResume: runningProvider.resumeRunning,
+                    onStop: _stopRunning,
+                  ),
+                ],
+              ),
+            );
+          },
         ),
+      ),
+    );
+  }
+
+  void _startRunning() {
+    setState(() {
+      _showCountdown = false;
+    });
+    context.read<RunningProvider>().startRunning();
+  }
+
+  void _stopRunning() {
+    context.read<RunningProvider>().stopRunning();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const RunResultScreen(),
       ),
     );
   }

@@ -1,5 +1,3 @@
-// lib/features/onboarding/screens/start_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:runaway/features/onboarding/widgets/onboarding_content.dart';
 import 'package:runaway/features/onboarding/widgets/login_signup_content.dart';
