@@ -1,6 +1,8 @@
 // lib/features/onboarding/widgets/login_signup_content.dart
 
 import 'package:flutter/material.dart';
+import 'package:runaway/features/home/screens/home_screen.dart';
+
 
 class LoginSignupContent extends StatefulWidget {
   const LoginSignupContent({Key? key}) : super(key: key);
@@ -103,8 +105,13 @@ class _LoginSignupContentState extends State<LoginSignupContent> {
   void _submit() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      // 로그인 또는 회원가입 로직 구현
+      // 로그인 또는 회원가입 로직 구현 (서버 연동 전까지는 생략)
       print('Username: $_username, Password: $_password, Mode: ${_isLogin ? "Login" : "Sign Up"}');
+
+      // 메인화면으로 이동
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
     }
   }
 }

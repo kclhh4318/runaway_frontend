@@ -11,6 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  fl_chart: ^0.66.2  # 최신 버전을 사용하세요
   cupertino_icons: ^1.0.2
   http: ^0.13.4
   provider: ^6.0.2
